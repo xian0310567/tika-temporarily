@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = "postgresql://postgres:0000@localhost:5432/test"
+  // url      = env("DATABASE_URL")
+}
+
+// 회원정보
+model user {
+  no            Int        @id @default(autoincrement())
+  id            String     @unique
+  pw            String
+  name          String?
+  phone         String?
+  team          team[]
+  joinTeam      joinTeam[]
+  masterCount   Int
+  payment       String?
+  clearTodo     clearTodo[]
+  jointodo      joinTodo[]
+}
+
+// 팀 정보
+model team {
+  no       Int        @id @default(autoincrement())
+  master   String
+  user     user       @relation(fields: [master], references: [id])
+  name     String
+  code     String     @unique
+  joinTeam joinTeam[]
+  todo     todo[]
+}
+
+// 팀 가입 정보
+model joinTeam {
+  no        Int    @id @default(autoincrement())
+  userId    String
+  user      user   @relation(fields: [userId], references: [id])
+  team_code String @map("teamCode")
+  team      team   @relation(fields: [team_code], references: [code])
+}
+
+// 할일 정보
+model todo {
+  todocode    String      @id
+  title       String
+  teamcode    String
+  team        team        @relation(fields: [teamcode], references: [code])
+  date        DateTime
+  clearTodo   clearTodo[]
+  joinTodo    joinTodo[]
+}
+
+// todo에 가입되어 있는 팀원 data
+model joinTodo {
+  todocode    String
+  todo        todo        @relation(fields: [todocode], references: [todocode])
+  member      String
+  user        user        @relation(fields: [member], references: [id])
+
+  @@id([member, todocode])
+}
+
+// todo의 성취도.
+model clearTodo {
+  joincode    String      @id
+  todocode    String
+  todo        todo        @relation(fields: [todocode], references: [todocode])
+  userId      String
+  user        user        @relation(fields: [userId], references: [id])
+}
